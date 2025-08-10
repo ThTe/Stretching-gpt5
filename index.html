@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AutoDiag Mobilité Pro</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" sizes="192x192">
+  <meta name="theme-color" content="#0ea5e9"/>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="wrap row">
+    <h1>AutoDiag Mobilité Pro</h1>
+    <span class="badge">PWA • Pages</span>
+    <div style="margin-left:auto" class="row">
+      <button class="btn" id="saveBtn">💾 Sauvegarder</button>
+      <button class="btn" id="resetBtn">↺ Réinitialiser</button>
+      <button class="btn" id="exportCSV">⬇️ Export CSV</button>
+      <button class="btn" id="printPDF">🖨️ PDF</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="tabbar">
+    <button class="tab active" data-view="home">Accueil</button>
+    <button class="tab" data-view="diag">Diagnostic</button>
+    <button class="tab" data-view="results">Résultats</button>
+    <button class="tab" data-view="routine">Routine</button>
+    <button class="tab" data-view="library">Bibliothèque</button>
+    <button class="tab" data-view="progress">Suivi</button>
+    <button class="tab" data-view="guide">Guide</button>
+  </nav>
+
+  <!-- HOME -->
+  <section class="card view show" id="view-home">
+    <h2>Bienvenue</h2>
+    <p class="instructions">
+      1) <b>Diagnostic</b> → mesures et sensations<br>
+      2) <b>Résultats</b> → priorités + score global<br>
+      3) <b>Routine</b> → plan + timer + feedback<br>
+      4) <b>Suivi</b> → historique & courbes + export CSV/PDF
+    </p>
+    <button class="btn" data-nav="diag">▶︎ Lancer le diagnostic</button>
+  </section>
+
+  <!-- DIAGNOSTIC -->
+  <section class="card view" id="view-diag">
+    <h2>Diagnostic</h2>
+    <div class="grid">
+      <section class="card">
+        <h3>Chevilles – Genou au mur (cm)</h3>
+        <div class="field"><label>Gauche</label><input type="number" id="ankleL" min="0" step="0.5" placeholder="ex. 7"/><span class="badge">cm</span></div>
+        <div class="field"><label>Droite</label><input type="number" id="ankleR" min="0" step="0.5" placeholder="ex. 13"/><span class="badge">cm</span></div>
+        <h3>Hanches – Rotation interne (0–10)</h3>
+        <div class="field"><label>Gauche</label><input type="range" id="hipIRL" min="0" max="10" value="2"/><span id="hipIRLVal" class="badge">2/10</span></div>
+        <div class="field"><label>Droite</label><input type="range" id="hipIRR" min="0" max="10" value="4"/><span id="hipIRRVal" class="badge">4/10</span></div>
+        <h3>Flexion de hanche</h3>
+        <div class="field"><label>Gauche</label>
+          <select id="hipFlexL">
+            <option value="0">Bloqué / douloureux</option>
+            <option value="1">Limité</option>
+            <option value="2" selected>Correct</option>
+            <option value="3">Très bon</option>
+          </select>
+          <span class="badge">auto</span>
+        </div>
+        <div class="field"><label>Droite</label>
+          <select id="hipFlexR">
+            <option value="0">Bloqué / douloureux</option>
+            <option value="1">Limité</option>
+            <option value="2" selected>Correct</option>
+            <option value="3">Très bon</option>
+          </select>
+          <span class="badge">auto</span>
+        </div>
+        <h3>Notes sensations</h3>
+        <textarea id="notes" placeholder="Tiraillement aine gauche, crampe fessier, talon qui se décolle…"></textarea>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="analyzeBtn">🔎 Analyser</button>
+        </div>
+      </section>
+      <aside class="card">
+        <h3>Aide – Comment mesurer ?</h3>
+        <ul class="instructions" id="testHelp"></ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- RESULTATS -->
+  <section class="grid view" id="view-results">
+    <section class="card">
+      <h2>Résultats & priorités</h2>
+      <div class="kpi">
+        <div><span class="instructions">Asymétrie cheville</span><b id="kAsym">–</b><small>Δ cm</small></div>
+        <div><span class="instructions">Score hanche G</span><b id="kHipL">–</b><small>RI</small></div>
+        <div><span class="instructions">Score hanche D</span><b id="kHipR">–</b><small>RI</small></div>
+      </div>
+      <h3>Indice de mobilité globale</h3>
+      <div class="bar"><i id="globalBar"></i></div>
+      <p id="summary" class="instructions" style="margin-top:8px">
+        Pondération cheville/hanche/flexion → plan 15–20 min. Feedback de la veille pris en compte.
+      </p>
+      <div id="priority" class="list"></div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-nav="routine">▶︎ Générer la routine</button></div>
+    </section>
+    <aside class="card">
+      <h3>Interprétation</h3>
+      <ul class="instructions" id="interpretation"></ul>
+    </aside>
+  </section>
+
+  <!-- ROUTINE -->
+  <section class="grid view" id="view-routine">
+    <section class="card">
+      <h2>Routine du jour (15–20 min)</h2>
+      <div id="plan" class="list"></div>
+      <div class="footer">Astuce : pieds nus, respiration calme, genoux dans l’axe des orteils.</div>
+    </section>
+    <section class="card">
+      <h3>Timer & Feedback</h3>
+      <div class="timer">
+        <button class="btn" id="tMinus">−10s</button>
+        <div class="time" id="tVal">00:30</div>
+        <button class="btn" id="tPlus">+10s</button>
+        <button class="btn" id="tStart">▶︎</button>
+        <button class="btn" id="tStop">■</button>
+      </div>
+      <h3>Feedback séance</h3>
+      <div class="row">
+        <label><input type="checkbox" id="fbEase"> Étirements confortables</label>
+        <label><input type="checkbox" id="fbHeels"> Talons au sol en deep squat</label>
+        <label><input type="checkbox" id="fbSym"> Moins d’asymétrie</label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="finishBtn">✔︎ Enregistrer la séance</button>
+      </div>
+      <div id="log" class="footer"></div>
+    </section>
+  </section>
+
+  <!-- BIBLIO -->
+  <section class="card view" id="view-library">
+    <h2>Bibliothèque d’exercices</h2>
+    <div id="lib" class="list"></div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="card view" id="view-progress">
+    <h2>Suivi & Historique</h2>
+    <div class="row" style="gap:8px;margin-bottom:8px">
+      <button class="btn" id="refreshProgress">🔄 Actualiser</button>
+      <button class="btn" id="exportCSV2">⬇️ Export CSV</button>
+    </div>
+    <div class="grid">
+      <section class="card">
+        <h3>Courbes (cm et scores)</h3>
+        <div id="charts"></div>
+      </section>
+      <section class="card">
+        <h3>Historique des séances</h3>
+        <table id="historyTable">
+          <thead><tr><th>Date</th><th>Faits</th><th>Total/%</th><th>Confort</th><th>Talons</th><th>Sym</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+  </section>
+
+  <!-- GUIDE -->
+  <section class="card view" id="view-guide">
+    <h2>Guide & mode d’emploi</h2>
+    <div id="guideContent" class="list"></div>
+  </section>
+</main>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav">
+  <div class="wrap">
+    <button class="btn" data-view="home">Accueil</button>
+    <button class="btn" data-view="diag">Diagnostic</button>
+    <button class="btn" data-view="routine">Routine</button>
+    <button class="btn" data-view="progress">Suivi</button>
+    <button class="btn" data-view="library">Bibliothèque</button>
+  </div>
+</nav>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
+}
+</script>
+</body>
+</html>
